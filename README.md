@@ -57,7 +57,17 @@ added once the application configuration is finalized.
 Deployment instructions will be added once
 the Kubernetes manifests are complete.
 
+
 ## Architecture
 
-An architecture diagram will be added once
-the application and supporting services are finalized.
+The following diagram shows the planned
+CI/CD and deployment architecture.
+
+```mermaid
+flowchart TD
+    A[GitHub Repository] --> B[GitHub Actions]
+    B --> C[Docker Build]
+    C --> D[GHCR]
+    D --> E[Kubernetes]
+    E --> F[Student Task Tracker]
+```
