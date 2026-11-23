@@ -1,6 +1,10 @@
 
 name: Student Task Tracker CI/CD
 
+permissions:
+  contents: read
+  packages: write
+
 on:
   push:
     branches: [main]
