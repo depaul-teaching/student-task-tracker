@@ -30,6 +30,8 @@ The project will use:
 
 ## CI/CD Pipeline
 
+The pipeline uses Ruff to perform Python lint checks before building the Docker image.
+
 GitHub Actions automates the application's
 testing, building, and publishing process.
 
