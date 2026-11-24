@@ -1,7 +1,8 @@
 import os
+from html import escape
+
 from fastapi import FastAPI, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
-from html import escape
 
 app = FastAPI(title="student-task-tracker")
 
