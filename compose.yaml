@@ -1,0 +1,17 @@
+services:
+  app:
+    build: .
+    environment:
+      - APP_TITLE=${APP_TITLE:-Task Flow - Student Task Tracker}
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    environment:
+      - APP_HOST=app
+      - APP_PORT=8000
+    volumes:
+      - ./nginx.conf:/etc/nginx/templates/default.conf.template:ro
+    depends_on:
+      - app
