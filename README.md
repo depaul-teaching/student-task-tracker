@@ -1,77 +1,160 @@
-
-# Student Task Tracker
+# Task Flow - Student Task Tracker
 
 ## Overview
 
-The Student Task Tracker is a simple application
-that helps students organize and complete their
-assignments and weekly tasks.
+Task Flow is a simple web application that helps
+students organize and complete their assignments
+and weekly tasks.
 
-This application is being developed as the final
-project for IT 390: Introduction to Containers
-at DePaul University.
+Developed by the Task Flow Team for IT 390:
+Introduction to Containers at DePaul University.
 
 ## Features
 
-Planned features include:
-- Display a list of student assignments and tasks
-- Add new tasks
-- Mark tasks as completed
-- Filter tasks by completion status
+- View a list of student assignments and tasks.
+- Add new tasks.
+- Mark tasks as completed.
+- Retrieve task data through a REST API.
+- Customize the application heading using an
+  environment variable.
 
 ## Technologies
 
-The project will use:
-- Docker for containerization
-- Docker Compose for running multiple services
-- GitHub Actions for CI/CD
-- GitHub Container Registry (GHCR) for image storage
-- Kubernetes for deployment and management
+- Python 3.12
+- FastAPI
+- Uvicorn
+- Nginx
+- Docker
+- Docker Compose
+- GitHub Actions
+- GitHub Container Registry (GHCR)
+- Kubernetes
+- Ruff
+
+## Running the Application
+
+### Docker Compose
+
+Make sure Docker is installed and running.
+
+Clone the repository:
+
+```bash
+git clone https://github.com/depaul-teaching/student-task-tracker.git
+cd student-task-tracker
+```
+
+Build and start the services:
+
+```bash
+docker compose up --build
+```
+
+Open the application at:
+
+http://localhost:8080
+
+Stop the services:
+
+```bash
+docker compose down
+```
+
+## Environment Variables
+
+| Variable | Default | Purpose |
+|---|---|---|
+| APP_TITLE | Task Flow - Student Task Tracker | Controls the visible page heading |
+| APP_HOST | app | Nginx upstream hostname |
+| APP_PORT | 8000 | Nginx upstream port |
+
+To customize the application heading, run:
+
+```bash
+APP_TITLE="My Assignment Tracker" docker compose up --build
+```
+
+APP_HOST and APP_PORT are configured in compose.yaml.
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | / | Displays the task tracker |
+| GET | /health | Returns application health status |
+| GET | /api/tasks | Returns task data as JSON |
+| POST | /add | Adds a new task |
+| POST | /complete/{task_id} | Marks a task as completed |
 
 ## CI/CD Pipeline
 
 GitHub Actions automates the application's
-testing, building, and publishing process.
+linting, building, and image publishing process.
 
-The pipeline is designed to:
-1. Run when code is pushed or a pull request is opened.
-2. Run automated tests or lint checks.
-3. Build a Docker image.
-4. Publish the image to GHCR with a commit SHA tag.
+The workflow runs on pushes and pull requests
+targeting the main branch.
 
-Currently, only the initial workflow checks are
-implemented.
+The pipeline performs the following steps:
 
-The pipeline uses Ruff to perform Python lint checks before building the Docker image.
+1. Checks out the repository.
+2. Sets up Python 3.12.
+3. Installs Ruff.
+4. Runs Python lint checks.
+5. Sets up Docker Buildx.
+6. Builds the Docker image.
+7. Publishes the image to GHCR on pushes to main.
 
-Docker images are published to GHCR on pushes to the main branch and tagged with the corresponding commit SHA.
+Published images are tagged with the full Git
+commit SHA using the sha- prefix.
 
-## Running the Application
+Pull requests build the image without publishing it.
 
-Instructions will be added once the Dockerfile
-and Docker Compose configuration are complete.
+Container registry:
 
-## Environment Variables
+`ghcr.io/depaul-teaching/student-task-tracker`
 
-Environment variable instructions will be
-added once the application configuration is finalized.
+## Application Architecture
 
-## Kubernetes Deployment
+```mermaid
+flowchart TD
+    A[Student Browser] -->|Port 8080| B[Nginx]
+    B -->|Port 8000| C[FastAPI and Uvicorn]
+    C --> D[In-Memory Task List]
+```
 
-Deployment instructions will be added once
-the Kubernetes manifests are complete.
+Docker Compose connects the FastAPI application
+and Nginx supporting service.
 
+The application container uses a non-root user
+to reduce security risks.
 
-## Architecture
-
-The following diagram shows the planned
-CI/CD and deployment architecture.
+## CI/CD Architecture
 
 ```mermaid
 flowchart TD
     A[GitHub Repository] --> B[GitHub Actions]
-    B --> C[Docker Build]
-    C --> D[GHCR]
-    D --> E[Kubernetes]
-    E --> F[Student Task Tracker]
+    B --> C[Ruff Lint Checks]
+    C --> D[Docker Build]
+    D -->|Push to main| E[GHCR]
+    E --> F[Kubernetes Cluster]
 ```
+
+## Kubernetes Deployment
+
+Kubernetes deployment instructions will be
+added once the deployment manifests are finalized.
+
+## Known Limitations
+
+Tasks are stored in memory rather than in a
+persistent database. Restarting the application
+resets the task list.
+
+Multiple application replicas maintain separate
+task lists.
+
+## Team Members
+
+- Melanie Vu
+- Joe Harmanos
+- Demetri Frangiadakis
