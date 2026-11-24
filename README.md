@@ -30,8 +30,6 @@ The project will use:
 
 ## CI/CD Pipeline
 
-The pipeline uses Ruff to perform Python lint checks before building the Docker image.
-
 GitHub Actions automates the application's
 testing, building, and publishing process.
 
@@ -43,6 +41,10 @@ The pipeline is designed to:
 
 Currently, only the initial workflow checks are
 implemented.
+
+The pipeline uses Ruff to perform Python lint checks before building the Docker image.
+
+Docker images are published to GHCR on pushes to the main branch and tagged with the corresponding commit SHA.
 
 ## Running the Application
 
