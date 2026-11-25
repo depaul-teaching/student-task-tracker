@@ -124,45 +124,51 @@ APP_HOST and APP_PORT are configured in compose.yaml.
 
 ## CI/CD Pipeline
 
-GitHub Actions automates the application's
-linting, building, and image publishing process.
+GitHub Actions automates the validation, building,
+and publishing of the application image.
 
-The workflow runs on pushes and pull requests
-targeting the main branch.
+The workflow runs on pushes to main and pull
+requests targeting main.
 
-The pipeline performs the following steps:
+### Pipeline Steps
 
-1. Checks out the repository.
-2. Sets up Python 3.12.
-3. Installs Ruff.
-4. Runs Python lint checks.
-5. Sets up Docker Buildx.
-6. Builds the Docker image.
-7. Publishes the image to GHCR on pushes to main.
+1. Check out the repository.
+2. Set up Python 3.12.
+3. Install Ruff.
+4. Run Ruff lint checks to validate code quality.
+5. Set up QEMU for cross-platform builds.
+6. Set up Docker Buildx.
+7. Authenticate with GitHub Container Registry
+   (GHCR) on pushes to main.
+8. Build the Docker image for both linux/amd64
+   and linux/arm64.
+9. Publish the image to GHCR on pushes to main.
 
-Published images are tagged with the full Git
-commit SHA using the sha- prefix.
+Pull requests validate the code and build the
+image without publishing it.
 
-Pull requests build the image without publishing it.
+### Image Tagging
 
-Container registry:
+Published images use SHA-based tags instead of
+latest. This allows specific versions of the
+application to be identified and deployed
+consistently.
 
-`ghcr.io/depaul-teaching/student-task-tracker`
+The GHCR package is public and can be pulled
+without authentication.
 
-## Application Architecture
+### Multi-Platform Support
 
-```mermaid
-flowchart TD
-    A[Student Browser] -->|Port 8080| B[Nginx]
-    B -->|Port 8000| C[FastAPI and Uvicorn]
-    C --> D[In-Memory Task List]
-```
+QEMU and Docker Buildx allow the pipeline to
+produce images compatible with both x86-64
+and ARM64 systems, including Apple Silicon Macs.
 
-Docker Compose connects the FastAPI application
-and Nginx supporting service.
+Kubernetes automatically pulls the appropriate
+image for its node architecture.
 
-The application container uses a non-root user
-to reduce security risks.
+The pipeline stops at publishing the image.
+Kubernetes deployment is performed manually
+using kubectl.
 
 ## CI/CD Architecture
 
@@ -175,10 +181,89 @@ flowchart TD
     E --> F[Kubernetes Cluster]
 ```
 
-## Kubernetes Deployment
+## Running on Kubernetes
 
-Kubernetes deployment instructions will be
-added once the deployment manifests are finalized.
+### Start the cluster
+
+```bash
+kind create cluster --name it390
+```
+
+If the cluster already exists, skip this command.
+
+```bash
+kubectl config use-context kind-it390
+```
+
+### Deploy the application
+
+```bash
+kubectl apply -f k8s/
+kubectl get deployments
+kubectl get services
+kubectl get pods
+```
+
+Wait until the app and nginx pods are running and ready.
+
+### Access the application
+
+```bash
+kubectl port-forward service/nginx 8081:80
+```
+
+Open http://localhost:8081.
+
+### Scaling
+
+```bash
+kubectl scale deployment app --replicas=3
+kubectl get pods -l app=task-tracker
+kubectl scale deployment app --replicas=1
+```
+
+### Rolling Update and Rollback
+
+```bash
+kubectl set env deployment/app APP_TITLE="Task Flow - Updated"
+kubectl rollout status deployment/app
+kubectl rollout undo deployment/app
+kubectl rollout status deployment/app
+```
+
+### Self-Healing
+
+```bash
+kubectl delete pod -l app=task-tracker
+kubectl get pods -l app=task-tracker
+```
+
+The Deployment automatically creates a replacement pod.
+
+### Diagnostics
+
+```bash
+kubectl get pods -l app=task-tracker
+kubectl describe deployment app
+kubectl logs deployment/app --tail=20
+```
+
+The readiness probe periodically checks /health.
+Successful HTTP 200 responses indicate that the
+application is ready to receive traffic.
+
+### Multi-Platform Compatibility
+
+The CI workflow uses QEMU and Docker Buildx to
+publish images for both linux/amd64 and linux/arm64.
+This allows the same SHA-tagged image to run on
+Intel, AMD, and Apple Silicon systems.
+
+### Cleanup
+
+```bash
+kubectl delete -f k8s/
+```
 
 ## Architecture Notes
 
