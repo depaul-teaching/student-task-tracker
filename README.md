@@ -33,6 +33,42 @@ Introduction to Containers at DePaul University.
 
 ## Running the Application
 
+### Prerequisites
+
+- Git
+- Python 3.12
+- Docker with Docker Compose
+- kind and kubectl for Kubernetes deployment
+
+### Local Python
+
+From the repository directory, run:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn main:app --host 0.0.0.0 --port 8000
+```
+
+Open http://localhost:8000.
+
+### Standalone Docker
+
+Build the application image:
+
+```bash
+docker build -t student-task-tracker .
+```
+
+Start the container:
+
+```bash
+docker run --rm -p 8000:8000 student-task-tracker
+```
+
+Open http://localhost:8000.
+
 ### Docker Compose
 
 Make sure Docker is installed and running.
@@ -143,6 +179,41 @@ flowchart TD
 
 Kubernetes deployment instructions will be
 added once the deployment manifests are finalized.
+
+## Architecture Notes
+
+FastAPI provides both the web interface and API
+endpoints. Nginx acts as a reverse proxy, separating
+the public-facing entry point from the application.
+
+Docker Compose provides a reproducible local
+environment for both services.
+
+GitHub Actions runs lint checks before building
+the image. SHA-based tags allow specific application
+versions to be identified and deployed.
+
+In-memory storage was chosen to keep the application
+simple and prioritize container infrastructure.
+The tradeoff is that task data does not persist
+across container restarts or synchronize across
+replicas.
+
+## Troubleshooting
+
+### Ruff Import Order Error
+
+The CI pipeline initially failed after the application
+code was added. Inspection of the GitHub Actions
+logs revealed a Ruff I001 import-order error in main.py.
+
+The issue was resolved by grouping Python standard
+library imports separately from third-party imports.
+
+After committing the correction, the workflow passed
+and successfully published the Docker image to GHCR.
+This demonstrated how automated checks prevent code
+quality issues from progressing through the pipeline.
 
 ## Known Limitations
 
